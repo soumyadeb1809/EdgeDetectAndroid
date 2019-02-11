@@ -3,11 +3,13 @@ package com.scanlibrary;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +17,9 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.squareup.picasso.Picasso;
+
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 /**
@@ -77,13 +82,14 @@ public class ResultFragment extends Fragment {
     }
 
     public void setScannedImage(Bitmap scannedImage) {
-        scannedImageView.setImageBitmap(scannedImage);
+        Picasso.get().load(getImageUri(getActivity(), scannedImage)).resize(0, 1000).into(scannedImageView);
+        //scannedImageView.setImageBitmap(scannedImage);
     }
 
     private class DoneButtonClickListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
-            showProgressDialog(getResources().getString(R.string.loading));
+            showProgressDialog("Saving image...");
             AsyncTask.execute(new Runnable() {
                 @Override
                 public void run() {
@@ -101,8 +107,8 @@ public class ResultFragment extends Fragment {
                         getActivity().runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                dismissDialog();
                                 getActivity().finish();
+                                //dismissDialog();
                             }
                         });
                     } catch (Exception e) {
@@ -127,7 +133,8 @@ public class ResultFragment extends Fragment {
                             @Override
                             public void run() {
                                 transformed = original;
-                                scannedImageView.setImageBitmap(original);
+                                setScannedImage(original);
+                                //scannedImageView.setImageBitmap(original);
                                 e.printStackTrace();
                                 dismissDialog();
                                 onClick(v);
@@ -137,7 +144,8 @@ public class ResultFragment extends Fragment {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            scannedImageView.setImageBitmap(transformed);
+                            setScannedImage(transformed);
+                            //scannedImageView.setImageBitmap(transformed);
                             dismissDialog();
                         }
                     });
@@ -160,7 +168,8 @@ public class ResultFragment extends Fragment {
                             @Override
                             public void run() {
                                 transformed = original;
-                                scannedImageView.setImageBitmap(original);
+                                setScannedImage(original);
+                                //scannedImageView.setImageBitmap(original);
                                 e.printStackTrace();
                                 dismissDialog();
                                 onClick(v);
@@ -170,7 +179,8 @@ public class ResultFragment extends Fragment {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            scannedImageView.setImageBitmap(transformed);
+                            setScannedImage(transformed);
+                            //scannedImageView.setImageBitmap(transformed);
                             dismissDialog();
                         }
                     });
@@ -185,7 +195,8 @@ public class ResultFragment extends Fragment {
             try {
                 showProgressDialog(getResources().getString(R.string.applying_filter));
                 transformed = original;
-                scannedImageView.setImageBitmap(original);
+                setScannedImage(original);
+                //scannedImageView.setImageBitmap(original);
                 dismissDialog();
             } catch (OutOfMemoryError e) {
                 e.printStackTrace();
@@ -208,7 +219,8 @@ public class ResultFragment extends Fragment {
                             @Override
                             public void run() {
                                 transformed = original;
-                                scannedImageView.setImageBitmap(original);
+                                setScannedImage(original);
+                                //scannedImageView.setImageBitmap(original);
                                 e.printStackTrace();
                                 dismissDialog();
                                 onClick(v);
@@ -218,7 +230,8 @@ public class ResultFragment extends Fragment {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            scannedImageView.setImageBitmap(transformed);
+                            setScannedImage(transformed);
+                            //scannedImageView.setImageBitmap(transformed);
                             dismissDialog();
                         }
                     });
@@ -241,4 +254,13 @@ public class ResultFragment extends Fragment {
     protected synchronized void dismissDialog() {
         progressDialogFragment.dismissAllowingStateLoss();
     }
+
+    public Uri getImageUri(Activity activity, Bitmap inImage) {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+        String path = MediaStore.Images.Media.insertImage(activity.getContentResolver(), inImage, "Title", null);
+        return Uri.parse(path);
+    }
+
+
 }
